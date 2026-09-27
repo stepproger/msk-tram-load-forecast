@@ -1,0 +1,12 @@
+# Target load-test profile: 2 vCPU / ~2 GB in total.
+# docker compose -f docker-compose.yml -f docker-compose.perf.yml up -d --build
+services:
+  forecast-data:
+    cpus: 0.6
+    mem_limit: 640m
+  backend:
+    cpus: 1.0
+    mem_limit: 1024m
+  frontend:
+    cpus: 0.4
+    mem_limit: 256m

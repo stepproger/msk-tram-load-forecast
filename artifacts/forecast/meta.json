@@ -1,0 +1,33 @@
+{
+  "model_version": "honest-profile+lightgbm",
+  "trained_at": "2026-09-27T23:18:28",
+  "cv_wape_score": 0.9193,
+  "lb_wape_score": 0.90257,
+  "features": [
+    "profile_level_2w",
+    "profile_shape_4w",
+    "day_type_5",
+    "calendar_rf",
+    "network_events_announced",
+    "season_x1.03_from_backtest",
+    "route5_analog_route25",
+    "free_ride_31dec",
+    "lightgbm_l1_route_hour_dow_holiday_weather",
+    "ensemble_0.5_profile_0.5_lightgbm"
+  ],
+  "honesty_note": "No target-period ridership. Profile parameters from history; the only leaderboard-derived choice is the E7 blending recipe (best of E1-E7 uploads, confirmed by local proxy). Actual Nov-Dec weather used (disclosed). Network events and free-ride night from Deptrans announcements; route 5 level by analog (route 25 x 7 trams).",
+  "nowcast": {
+    "shrink": 0.7,
+    "clip": [
+      0.5,
+      1.5
+    ],
+    "start_hour": 5,
+    "gain_note": "Коррекция остатка дня по факту с 5:00: WAPE-score 0.881→0.900 (в 9:00), 0.879→0.903 (12:00), 0.880→0.907 (15:00)"
+  },
+  "capacity": {
+    "model": "71-931М Витязь-М",
+    "nominal": 188,
+    "max": 265
+  }
+}

@@ -1,0 +1,365 @@
+{
+ "description": "Горизонт «год»: город (62521) × доля 9 маршрутов × разбиение по типам дня; ноя–дек 2025 из FINAL.csv",
+ "city_variants": {
+  "naive": "тот же месяц год назад",
+  "snaive_g": "тот же месяц год назад × рост скользящих 12 мес. г/г",
+  "seas_trend": "сезонность (2019, 2022–2025, полные годы) × уровень × лог-линейный тренд (24 мес.)",
+  "seas_damped": "то же, тренд демпфирован φ=0.9/мес."
+ },
+ "city_backtest_mape_pct": {
+  "origin 2023-10 → 2024-01..2024-12": {
+   "naive": 18.1,
+   "snaive_g": 12.14,
+   "seas_trend": 24.6,
+   "seas_damped": 23.72
+  },
+  "origin 2024-10 → 2025-01..2025-12": {
+   "naive": 10.65,
+   "snaive_g": 9.53,
+   "seas_trend": 8.99,
+   "seas_damped": 4.52
+  },
+  "origin 2023-12 → 2024-01..2024-10": {
+   "naive": 16.58,
+   "snaive_g": 9.41,
+   "seas_trend": 8.7,
+   "seas_damped": 9.79
+  },
+  "origin 2024-12 → 2025-01..2025-10": {
+   "naive": 8.47,
+   "snaive_g": 8.79,
+   "seas_trend": 7.09,
+   "seas_damped": 4.84
+  },
+  "mean_all_setups": {
+   "naive": 13.45,
+   "snaive_g": 9.97,
+   "seas_trend": 12.35,
+   "seas_damped": 10.72
+  }
+ },
+ "city_selected": "snaive_g",
+ "oos_2026_mape_pct_jan_aug": {
+  "origin 2025-12": {
+   "naive": 9.44,
+   "snaive_g": 5.5,
+   "seas_trend": 3.15,
+   "seas_damped": 3.77
+  },
+  "origin 2025-10": {
+   "naive": 9.44,
+   "snaive_g": 5.54,
+   "seas_trend": 2.36,
+   "seas_damped": 3.2
+  }
+ },
+ "oos_2026_table_origin_2025_12": [
+  {
+   "month": "2026-01",
+   "variant": "naive",
+   "forecast": 16264325,
+   "fact": 16118642,
+   "err_pct": 0.9
+  },
+  {
+   "month": "2026-02",
+   "variant": "naive",
+   "forecast": 17486864,
+   "fact": 17604691,
+   "err_pct": -0.67
+  },
+  {
+   "month": "2026-03",
+   "variant": "naive",
+   "forecast": 19734883,
+   "fact": 21630268,
+   "err_pct": -8.76
+  },
+  {
+   "month": "2026-04",
+   "variant": "naive",
+   "forecast": 19077339,
+   "fact": 20796660,
+   "err_pct": -8.27
+  },
+  {
+   "month": "2026-05",
+   "variant": "naive",
+   "forecast": 17250848,
+   "fact": 19587373,
+   "err_pct": -11.93
+  },
+  {
+   "month": "2026-06",
+   "variant": "naive",
+   "forecast": 15659056,
+   "fact": 18920515,
+   "err_pct": -17.24
+  },
+  {
+   "month": "2026-07",
+   "variant": "naive",
+   "forecast": 15335170,
+   "fact": 17766253,
+   "err_pct": -13.68
+  },
+  {
+   "month": "2026-08",
+   "variant": "naive",
+   "forecast": 15196860,
+   "fact": 17686376,
+   "err_pct": -14.08
+  },
+  {
+   "month": "2026-01",
+   "variant": "snaive_g",
+   "forecast": 17845388,
+   "fact": 16118642,
+   "err_pct": 10.71
+  },
+  {
+   "month": "2026-02",
+   "variant": "snaive_g",
+   "forecast": 19186770,
+   "fact": 17604691,
+   "err_pct": 8.99
+  },
+  {
+   "month": "2026-03",
+   "variant": "snaive_g",
+   "forecast": 21653320,
+   "fact": 21630268,
+   "err_pct": 0.11
+  },
+  {
+   "month": "2026-04",
+   "variant": "snaive_g",
+   "forecast": 20931856,
+   "fact": 20796660,
+   "err_pct": 0.65
+  },
+  {
+   "month": "2026-05",
+   "variant": "snaive_g",
+   "forecast": 18927811,
+   "fact": 19587373,
+   "err_pct": -3.37
+  },
+  {
+   "month": "2026-06",
+   "variant": "snaive_g",
+   "forecast": 17181280,
+   "fact": 18920515,
+   "err_pct": -9.19
+  },
+  {
+   "month": "2026-07",
+   "variant": "snaive_g",
+   "forecast": 16825909,
+   "fact": 17766253,
+   "err_pct": -5.29
+  },
+  {
+   "month": "2026-08",
+   "variant": "snaive_g",
+   "forecast": 16674154,
+   "fact": 17686376,
+   "err_pct": -5.72
+  },
+  {
+   "month": "2026-01",
+   "variant": "seas_trend",
+   "forecast": 16476350,
+   "fact": 16118642,
+   "err_pct": 2.22
+  },
+  {
+   "month": "2026-02",
+   "variant": "seas_trend",
+   "forecast": 18069213,
+   "fact": 17604691,
+   "err_pct": 2.64
+  },
+  {
+   "month": "2026-03",
+   "variant": "seas_trend",
+   "forecast": 21244241,
+   "fact": 21630268,
+   "err_pct": -1.78
+  },
+  {
+   "month": "2026-04",
+   "variant": "seas_trend",
+   "forecast": 21199112,
+   "fact": 20796660,
+   "err_pct": 1.94
+  },
+  {
+   "month": "2026-05",
+   "variant": "seas_trend",
+   "forecast": 19212366,
+   "fact": 19587373,
+   "err_pct": -1.91
+  },
+  {
+   "month": "2026-06",
+   "variant": "seas_trend",
+   "forecast": 18064667,
+   "fact": 18920515,
+   "err_pct": -4.52
+  },
+  {
+   "month": "2026-07",
+   "variant": "seas_trend",
+   "forecast": 16857329,
+   "fact": 17766253,
+   "err_pct": -5.12
+  },
+  {
+   "month": "2026-08",
+   "variant": "seas_trend",
+   "forecast": 16787032,
+   "fact": 17686376,
+   "err_pct": -5.08
+  },
+  {
+   "month": "2026-01",
+   "variant": "seas_damped",
+   "forecast": 16464829,
+   "fact": 16118642,
+   "err_pct": 2.15
+  },
+  {
+   "month": "2026-02",
+   "variant": "seas_damped",
+   "forecast": 18032594,
+   "fact": 17604691,
+   "err_pct": 2.43
+  },
+  {
+   "month": "2026-03",
+   "variant": "seas_damped",
+   "forecast": 21161034,
+   "fact": 21630268,
+   "err_pct": -2.17
+  },
+  {
+   "month": "2026-04",
+   "variant": "seas_damped",
+   "forecast": 21065344,
+   "fact": 20796660,
+   "err_pct": 1.29
+  },
+  {
+   "month": "2026-05",
+   "variant": "seas_damped",
+   "forecast": 19036523,
+   "fact": 19587373,
+   "err_pct": -2.81
+  },
+  {
+   "month": "2026-06",
+   "variant": "seas_damped",
+   "forecast": 17840756,
+   "fact": 18920515,
+   "err_pct": -5.71
+  },
+  {
+   "month": "2026-07",
+   "variant": "seas_damped",
+   "forecast": 16587736,
+   "fact": 17766253,
+   "err_pct": -6.63
+  },
+  {
+   "month": "2026-08",
+   "variant": "seas_damped",
+   "forecast": 16452883,
+   "fact": 17686376,
+   "err_pct": -6.97
+  }
+ ],
+ "share_history_2025": {
+  "2025-01": 0.3423,
+  "2025-02": 0.3394,
+  "2025-03": 0.3404,
+  "2025-04": 0.3364,
+  "2025-05": 0.3479,
+  "2025-06": 0.3547,
+  "2025-07": 0.3526,
+  "2025-08": 0.3494,
+  "2025-09": 0.3296,
+  "2025-10": 0.324
+ },
+ "share_backtest_mape_pct": {
+  "last": 4.75,
+  "mean3": 4.59,
+  "damped": 5.7
+ },
+ "share_selected": "mean3",
+ "share_forecast_2026": 0.3153,
+ "share_forecast_2026_labels_only": 0.3343,
+ "share_implied_by_FINAL": {
+  "2025-11": 0.3125,
+  "2025-12": 0.3093
+ },
+ "split_backtest_wape_pct_route_day": {
+  "2025-03": 5.67,
+  "2025-04": 13.31,
+  "2025-05": 8.22,
+  "2025-06": 8.64,
+  "2025-07": 12.98,
+  "2025-08": 9.91,
+  "2025-09": 11.44,
+  "2025-10": 6.97
+ },
+ "sigma_log": {
+  "city_by_h": {
+   "1": 0.0994,
+   "2": 0.0875,
+   "3": 0.0994,
+   "4": 0.0943,
+   "5": 0.1028,
+   "6": 0.1135,
+   "7": 0.1195,
+   "8": 0.1257,
+   "9": 0.1129,
+   "10": 0.1061
+  },
+  "share": 0.0512,
+  "day_split": 0.1018
+ },
+ "city_80pct_interval_coverage_2026_jan_aug": 1.0,
+ "route5_2026_level_by_daytype": {
+  "0": 5828,
+  "1": 5782,
+  "4": 5826,
+  "5": 4372,
+  "6": 4294
+ },
+ "city_forecast_2026": {
+  "2026-01": 17845388,
+  "2026-02": 19186770,
+  "2026-03": 21653320,
+  "2026-04": 20931856,
+  "2026-05": 18927811,
+  "2026-06": 17181280,
+  "2026-07": 16825909,
+  "2026-08": 16674154,
+  "2026-09": 20462238,
+  "2026-10": 22374357
+ },
+ "routes9_monthly_forecast_2026": {
+  "2026-01": 5626482,
+  "2026-02": 6049407,
+  "2026-03": 6827087,
+  "2026-04": 6599616,
+  "2026-05": 5967760,
+  "2026-06": 5417095,
+  "2026-07": 5305050,
+  "2026-08": 5257203,
+  "2026-09": 6451550,
+  "2026-10": 7054423
+ },
+ "output": "artifacts/forecast/daily_year_candidate.parquet"
+}

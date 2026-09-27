@@ -1,0 +1,10 @@
+# Версии закреплены: с ними пайплайн проверен на чистом клоне (FINAL.csv совпадает побайтно)
+duckdb==1.5.5
+pandas==3.0.6
+numpy==2.5.3
+pyarrow==25.0.1
+openpyxl==3.1.5
+lightgbm==4.7.0
+scikit-learn==1.9.1
+scipy==1.18.1
+matplotlib==3.11.2

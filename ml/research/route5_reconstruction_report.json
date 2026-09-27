@@ -1,0 +1,34 @@
+{
+  "data_type": "modeled hourly estimates, not actual validations",
+  "official_start": "2025-12-16",
+  "official_first_week_trips_approx": 40000,
+  "s26_first_week_estimate": 39866,
+  "s26_december_total_estimate": 90465,
+  "scenario_december_totals": {
+    "S31_ROUTE5_LATE90": 85402,
+    "S32_ROUTE5_LATE80": 80337
+  },
+  "osm_shared_stops": {
+    "1": 0,
+    "7": 7,
+    "11": 0,
+    "12": 0,
+    "17": 0,
+    "25": 0,
+    "26": 0,
+    "28": 0,
+    "50": 7
+  },
+  "historical_shape_transfer_wape_with_known_daily_totals": {
+    "route_7_neighbor": 0.1514,
+    "route_7_network": 0.1181,
+    "route_50_neighbor": 0.1581,
+    "route_50_network": 0.1533
+  },
+  "sources": [
+    "https://transport.mos.ru/mostrans/all_news/127652",
+    "https://transport.mos.ru/mostrans/all_news/127782",
+    "https://t.me/DtRoad/56578"
+  ],
+  "note": "The >160k trips and >7.5k runs announced after one month include January; they cannot determine December's exact hourly or daily counts. Late-December factors are sensitivity scenarios, not inferred observations."
+}

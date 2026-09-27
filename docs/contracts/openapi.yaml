@@ -1,0 +1,1169 @@
+openapi: 3.0.3
+info:
+  title: Tram Load Forecast API
+  version: 1.0.0
+  description: >-
+    REST API диспетчерского сервиса прогнозирования пассажирских посадок
+    на трамвайных маршрутах. Контракт следует согласованному контракту №2
+    в docs/contracts/README.md.
+security:
+  - basicAuth: []
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Локальный запуск через Docker Compose
+tags:
+  - name: System
+  - name: Routes
+  - name: Forecast
+  - name: Dispatcher
+  - name: Export
+paths:
+  /health:
+    get:
+      tags: [System]
+      summary: Проверка готовности сервиса (без авторизации)
+      operationId: getHealth
+      security: []
+      responses:
+        '200':
+          description: Сервис доступен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+  /routes:
+    get:
+      tags: [Routes]
+      summary: Список поддерживаемых маршрутов
+      operationId: getRoutes
+      responses:
+        '200':
+          description: Маршруты из доступного справочника
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Route'
+  /routes/{route}/geometry:
+    get:
+      tags: [Routes]
+      summary: Геометрия маршрута и его остановки
+      operationId: getRouteGeometry
+      parameters:
+        - $ref: '#/components/parameters/RoutePath'
+      responses:
+        '200':
+          description: GeoJSON FeatureCollection с линией маршрута и точками остановок
+          content:
+            application/geo+json:
+              schema:
+                $ref: '#/components/schemas/RouteGeometry'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RouteGeometry'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /forecast:
+    get:
+      tags: [Forecast]
+      summary: Прогноз и фактические значения по маршрутам
+      operationId: getForecast
+      description: >-
+        Маршрутный прогноз строится по артефактам ML. При stop_id маршрутный
+        прогноз распределяется по остановкам или выбранному участку с помощью stop_shares. Фактические
+        значения включаются только для точек, для которых они доступны.
+        Для января 2025 доступны точки только с фактом: yhat, q10 и q90 равны null.
+        Коэффициенты передаются отдельными query-параметрами вида
+        factor.<id>=<value>; см. x-dynamic-query-parameters.
+      x-dynamic-query-parameters:
+        pattern: 'factor.{id}'
+        valueType: number
+        example: 'factor.weather_precip=0.97'
+        description: >-
+          По одному параметру на коэффициент из GET /factors. Неизвестный
+          коэффициент или значение вне min/max возвращает 400.
+      parameters:
+        - name: route
+          in: query
+          required: true
+          description: Один или несколько идентификаторов маршрутов
+          style: form
+          explode: true
+          schema:
+            type: array
+            minItems: 1
+            items:
+              type: integer
+              format: int32
+          example: [17, 50]
+        - name: segment_direction
+          in: query
+          required: false
+          description: Направление выбранного участка; использовать вместе с segment_start_seq и segment_end_seq.
+          schema:
+            type: integer
+        - name: segment_start_seq
+          in: query
+          required: false
+          description: Порядковый номер начальной остановки участка, включительно.
+          schema:
+            type: integer
+        - name: segment_end_seq
+          in: query
+          required: false
+          description: Порядковый номер конечной остановки, не входит в сумму посадок.
+          schema:
+            type: integer
+        - name: stop_id
+          in: query
+          required: false
+          description: Фильтр по остановке; при указании прогноз распределяется по stop_shares
+          schema:
+            type: integer
+            format: int64
+        - name: from
+          in: query
+          required: true
+          description: Начало интервала, включительно, ISO 8601
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          required: true
+          description: Конец интервала, включительно, ISO 8601
+          schema:
+            type: string
+            format: date
+        - name: horizon
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/Horizon'
+        - name: granularity
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/Granularity'
+        - name: from_hour
+          in: query
+          required: false
+          description: Начальный час включительно при granularity=hour; по умолчанию 0.
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 23
+            default: 0
+        - name: to_hour
+          in: query
+          required: false
+          description: Конечный час включительно при granularity=hour; по умолчанию 23.
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 23
+            default: 23
+        - $ref: '#/components/parameters/WeatherPrecipFactor'
+      responses:
+        '200':
+          description: Точки факта и прогноза в выбранной агрегации
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForecastResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /map/snapshot:
+    get:
+      tags: [Dispatcher]
+      summary: Срез прогноза для окраски карты
+      operationId: getMapSnapshot
+      description: >-
+        Срез по всем доступным маршрутам и остановкам за выбранный час,
+        день или месяц. Для исторических дат без бэктеста используется
+        маршрутный факт, распределённый по остановкам оценочно.
+      x-dynamic-query-parameters:
+        pattern: 'factor.{id}'
+        valueType: number
+      parameters:
+        - name: datetime
+          in: query
+          required: true
+          description: Момент времени, ISO 8601
+          schema:
+            type: string
+            format: date-time
+        - name: period
+          in: query
+          required: false
+          description: Агрегация среза карты; по умолчанию hour
+          schema:
+            type: string
+            enum: [hour, day, month]
+            default: hour
+        - $ref: '#/components/parameters/WeatherPrecipFactor'
+      responses:
+        '200':
+          description: GeoJSON-точки со значениями прогноза или исторического факта для карты
+          content:
+            application/geo+json:
+              schema:
+                $ref: '#/components/schemas/MapSnapshot'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MapSnapshot'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /recommendations:
+    get:
+      tags: [Dispatcher]
+      summary: Рекомендации по выпуску вагонов и времени стоянки
+      operationId: getRecommendations
+      description: >-
+        Расчёт использует прогноз посадок, фактическое число вагонов и
+        вместимость подвижного состава. Значения являются рекомендациями для
+        диспетчера, а не автоматическими командами управления.
+      x-dynamic-query-parameters:
+        pattern: 'factor.{id}'
+        valueType: number
+      parameters:
+        - name: route
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - $ref: '#/components/parameters/WeatherPrecipFactor'
+      responses:
+        '200':
+          description: Рекомендации по часам выбранной даты
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecommendationsResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /stream/replay:
+    get:
+      tags: [Dispatcher]
+      summary: Реплей часовых валидаций по SSE
+      operationId: replayValidations
+      description: >-
+        Имитирует поток поступающих валидаций на основе почасового actuals_hourly.
+        Это реплей агрегатов, а не поток сырых транзакций. Клиент должен
+        передавать Accept: text/event-stream.
+      parameters:
+        - name: date
+          in: query
+          required: true
+          description: Дата из исторического периода actuals_hourly
+          schema:
+            type: string
+            format: date
+          example: '2025-10-31'
+        - name: speed
+          in: query
+          required: false
+          description: Ускорение реплея, множитель относительно реального времени
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 3600
+            default: 60
+      responses:
+        '200':
+          description: SSE-поток почасовых агрегатов валидаций
+          content:
+            text/event-stream:
+              schema:
+                $ref: '#/components/schemas/ReplayEvent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /nowcast:
+    get:
+      tags: [Forecast]
+      summary: Уточнённый прогноз остатка дня
+      operationId: getNowcast
+      description: >-
+        Корректирует почасовой прогноз после now_hour по фактическим посадкам
+        с 5:00 до now_hour включительно. k = clip(sum(actual) / sum(baseline),
+        clip_min, clip_max); adjusted = baseline * (1 + shrink * (k - 1)).
+        Параметры shrink, clip и start_hour загружаются из meta.json.nowcast.
+      parameters:
+        - name: route
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: now_hour
+          in: query
+          required: true
+          description: Последний завершённый час с доступным фактом
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 23
+      responses:
+        '200':
+          description: Скорректированный прогноз на часы после now_hour
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NowcastResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /events:
+    get:
+      tags: [Dispatcher]
+      summary: Реестр событий, влияющих на модель
+      operationId: getModelEvents
+      responses:
+        '200':
+          description: События сети и календаря со ссылками на источники
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ModelEvent'
+    post:
+      tags: [Dispatcher]
+      summary: Добавить событие сети (ремонт, запуск, мероприятие) — прогноз, карта и рекомендации пересчитываются
+      operationId: addUserEvent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/UserEventInput'}
+      responses:
+        '201':
+          description: Событие добавлено (хранится в памяти сервиса данных)
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ModelEvent'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+  /events/{id}:
+    delete:
+      tags: [Dispatcher]
+      summary: Удалить событие, добавленное диспетчером
+      operationId: deleteUserEvent
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: {type: string, pattern: '^[A-Za-z0-9_-]{1,64}$'}
+      responses:
+        '200': {description: Удалено}
+        '404': {$ref: '#/components/responses/NotFound'}
+  /components:
+    get:
+      tags: [Forecast]
+      summary: Разложение прогноза на слои («почему такой прогноз»)
+      operationId: getComponents
+      parameters:
+        - {name: date, in: query, required: true, schema: {type: string, format: date}}
+        - {name: route, in: query, required: false, description: Без маршрута — сумма по сети, schema: {type: integer}}
+        - {name: hour, in: query, required: false, description: Без часа — сумма за сутки, schema: {type: integer, minimum: 0, maximum: 23}}
+      responses:
+        '200':
+          description: profile + Σ layers = final
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Components'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+  /plan-fact:
+    get:
+      tags: [Forecast]
+      summary: План (прогноз на неделю вперёд) и факт по прошедшим дням с интервалом q10–q90
+      operationId: getPlanFact
+      parameters:
+        - {name: from, in: query, required: true, schema: {type: string, format: date}}
+        - {name: to, in: query, required: true, description: Не больше 62 дней от from, schema: {type: string, format: date}}
+        - {name: route, in: query, required: false, schema: {type: integer}}
+      responses:
+        '200':
+          description: Почасовые точки, покрытие интервала и WAPE-score за период
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/PlanFact'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+  /anomalies:
+    get:
+      tags: [Forecast]
+      summary: Провалы данных и их причины (artifacts/forecast/anomalies.json)
+      operationId: getAnomalies
+      parameters:
+        - {name: route, in: query, required: false, schema: {type: integer}}
+      responses:
+        '200':
+          description: available=false, пока файл не выгружен
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Anomalies'}
+  /risk:
+    get:
+      tags: [Dispatcher]
+      summary: Риск превысить номинал вагона по маршрутам в выбранный час
+      operationId: getOverloadRisk
+      parameters:
+        - {name: date, in: query, required: true, schema: {type: string, format: date}}
+        - {name: hour, in: query, required: true, schema: {type: integer, minimum: 0, maximum: 23}}
+      responses:
+        '200':
+          description: Риск и выпуск по маршрутам
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/RiskSnapshot'}
+  /factors:
+    get:
+      tags: [Forecast]
+      summary: Доступные поправочные коэффициенты
+      operationId: getFactors
+      responses:
+        '200':
+          description: Коэффициенты для настройки сценария прогноза
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Factor'
+  /export:
+    get:
+      tags: [Export]
+      summary: Выгрузка прогноза в CSV или XLSX
+      operationId: exportForecast
+      description: Параметры фильтрации совпадают с GET /forecast.
+      x-dynamic-query-parameters:
+        pattern: 'factor.{id}'
+        valueType: number
+      parameters:
+        - name: route
+          in: query
+          required: true
+          description: Один или несколько идентификаторов маршрутов
+          style: form
+          explode: true
+          schema:
+            type: array
+            minItems: 1
+            items:
+              type: integer
+              format: int32
+        - name: segment_direction
+          in: query
+          required: false
+          description: Направление выбранного участка; использовать вместе с segment_start_seq и segment_end_seq.
+          schema:
+            type: integer
+        - name: segment_start_seq
+          in: query
+          required: false
+          description: Порядковый номер начальной остановки участка, включительно.
+          schema:
+            type: integer
+        - name: segment_end_seq
+          in: query
+          required: false
+          description: Порядковый номер конечной остановки, не входит в сумму посадок.
+          schema:
+            type: integer
+        - name: stop_id
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+        - name: from
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: horizon
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/Horizon'
+        - name: granularity
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/Granularity'
+        - name: from_hour
+          in: query
+          required: false
+          description: Начальный час включительно при granularity=hour; по умолчанию 0.
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 23
+            default: 0
+        - name: to_hour
+          in: query
+          required: false
+          description: Конечный час включительно при granularity=hour; по умолчанию 23.
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 23
+            default: 23
+        - name: format
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [csv, xlsx]
+        - $ref: '#/components/parameters/WeatherPrecipFactor'
+      responses:
+        '200':
+          description: Файл с прогнозом
+          headers:
+            Content-Disposition:
+              description: Имя выгруженного файла
+              schema:
+                type: string
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+        '400':
+          $ref: '#/components/responses/BadRequest'
+components:
+  parameters:
+    RoutePath:
+      name: route
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+    WeatherPrecipFactor:
+      name: factor.weather_precip
+      in: query
+      required: false
+      description: Пример динамического фактора; полный список возвращает GET /factors.
+      schema:
+        type: number
+        format: float
+        minimum: 0.8
+        maximum: 1.2
+        default: 1.0
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+      description: Логин/пароль из APP_USER / APP_PASSWORD (по умолчанию dispatcher / tram2025). 401 приходит без WWW-Authenticate.
+  responses:
+    Unauthorized:
+      description: Нет или неверные логин/пароль
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    BadRequest:
+      description: Невалидные параметры запроса
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    NotFound:
+      description: Маршрут или данные не найдены
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+  schemas:
+    HealthResponse:
+      type: object
+      required: [status, model_version]
+      properties:
+        status:
+          type: string
+          enum: [ok, degraded]
+        model_version:
+          type: string
+          nullable: true
+        lb_wape_score:
+          type: number
+          nullable: true
+          description: WAPE-score на скрытом эталоне из meta.json
+        cv_wape_score:
+          type: number
+          nullable: true
+        trained_at:
+          type: string
+          nullable: true
+    Route:
+      type: object
+      required: [route, name, has_geo, color]
+      properties:
+        route:
+          type: integer
+          format: int32
+        name:
+          type: string
+        has_geo:
+          type: boolean
+        color:
+          type: string
+          description: Цвет маршрута в формате CSS hex
+          pattern: '^#[0-9A-Fa-f]{6}$'
+    Horizon:
+      type: string
+      enum: [day, month, year]
+    Granularity:
+      type: string
+      enum: [hour, day, month]
+    ForecastResponse:
+      type: object
+      required: [meta, points]
+      properties:
+        meta:
+          $ref: '#/components/schemas/ForecastMeta'
+        points:
+          type: array
+          items:
+            $ref: '#/components/schemas/ForecastPoint'
+    ForecastMeta:
+      type: object
+      required: [model_version, trained_at]
+      properties:
+        model_version:
+          type: string
+        trained_at:
+          type: string
+          format: date-time
+        cv_wape_score:
+          type: number
+          format: float
+          nullable: true
+        horizon:
+          $ref: '#/components/schemas/Horizon'
+        granularity:
+          $ref: '#/components/schemas/Granularity'
+    ForecastPoint:
+      type: object
+      required: [ts, route, yhat, q10, q90]
+      properties:
+        no_service:
+          type: boolean
+          description: Только для granularity=hour. Нет движения (trams_plan = 0 или прогноз < 5) — не показывать как ноль.
+        ts:
+          type: string
+          description: ISO-дата для дней и месяцев или ISO-дата-время для часов
+        route:
+          type: integer
+          format: int32
+        stop_id:
+          type: integer
+          format: int64
+          nullable: true
+        yhat:
+          type: number
+          format: float
+          minimum: 0
+          nullable: true
+          description: Прогноз посадок за временной интервал; null для исторических дат без бэктеста
+        q10:
+          type: number
+          format: float
+          minimum: 0
+          nullable: true
+        q90:
+          type: number
+          format: float
+          minimum: 0
+          nullable: true
+        actual:
+          type: number
+          format: float
+          minimum: 0
+          nullable: true
+          description: Фактические посадки, если доступны; для остановки — оценка распределения
+    RouteGeometry:
+      type: object
+      required: [type, features]
+      properties:
+        type:
+          type: string
+          enum: [FeatureCollection]
+        features:
+          type: array
+          items:
+            oneOf:
+              - $ref: '#/components/schemas/RouteLineFeature'
+              - $ref: '#/components/schemas/StopFeature'
+    RouteLineFeature:
+      type: object
+      required: [type, geometry, properties]
+      properties:
+        type:
+          type: string
+          enum: [Feature]
+        geometry:
+          type: object
+          required: [type, coordinates]
+          properties:
+            type:
+              type: string
+              enum: [LineString]
+            coordinates:
+              type: array
+              items:
+                type: array
+                minItems: 2
+                maxItems: 2
+                items:
+                  type: number
+              description: Координаты GeoJSON в порядке [longitude, latitude]
+        properties:
+          type: object
+          required: [route]
+          properties:
+            route:
+              type: integer
+              format: int32
+            direction:
+              type: integer
+              format: int32
+    StopFeature:
+      type: object
+      required: [type, geometry, properties]
+      properties:
+        type:
+          type: string
+          enum: [Feature]
+        geometry:
+          type: object
+          required: [type, coordinates]
+          properties:
+            type:
+              type: string
+              enum: [Point]
+            coordinates:
+              type: array
+              minItems: 2
+              maxItems: 2
+              items:
+                type: number
+              description: Координаты GeoJSON в порядке [longitude, latitude]
+        properties:
+          type: object
+          required: [stop_id, name, seq, direction]
+          properties:
+            stop_id:
+              type: integer
+              format: int64
+            name:
+              type: string
+            seq:
+              type: integer
+              format: int32
+            direction:
+              type: integer
+              format: int32
+    MapSnapshot:
+      type: object
+      required: [type, features]
+      properties:
+        type:
+          type: string
+          enum: [FeatureCollection]
+        features:
+          type: array
+          items:
+            $ref: '#/components/schemas/MapSnapshotFeature'
+    MapSnapshotFeature:
+      type: object
+      required: [type, geometry, properties]
+      properties:
+        type:
+          type: string
+          enum: [Feature]
+        geometry:
+          type: object
+          required: [type, coordinates]
+          properties:
+            type:
+              type: string
+              enum: [Point]
+            coordinates:
+              type: array
+              minItems: 2
+              maxItems: 2
+              items:
+                type: number
+        properties:
+          type: object
+          required: [route, stop_id, yhat, source, period]
+          properties:
+            route:
+              type: integer
+              format: int32
+            stop_id:
+              type: integer
+              format: int64
+            yhat:
+              type: number
+              format: float
+            q10:
+              type: number
+              format: float
+              nullable: true
+            q90:
+              type: number
+              format: float
+              nullable: true
+            actual:
+              type: integer
+              format: int32
+              nullable: true
+            source:
+              type: string
+              enum: [forecast, actual]
+              description: Источник маршрутного значения до оценочного распределения по остановкам
+            period:
+              type: string
+              enum: [hour, day, month]
+            estimated_stop_load:
+              type: boolean
+              description: Привязка маршрутного числа к остановке носит оценочный характер
+    RecommendationsResponse:
+      type: object
+      required: [route, date, points]
+      properties:
+        route:
+          type: integer
+          format: int32
+        date:
+          type: string
+          format: date
+        points:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecommendationPoint'
+    RecommendationPoint:
+      type: object
+      required: [hour, yhat, trams_now, trams_needed, load_pct, dwell_extra_sec]
+      properties:
+        hour:
+          type: integer
+          minimum: 0
+          maximum: 23
+        yhat:
+          type: number
+          format: float
+          minimum: 0
+        trams_now:
+          type: integer
+          format: int32
+          minimum: 0
+        trams_needed:
+          type: integer
+          format: int32
+          minimum: 0
+        load_pct:
+          type: number
+          format: float
+          minimum: 0
+          description: Оценочная загрузка относительно целевой вместимости
+        dwell_extra_sec:
+          type: integer
+          format: int32
+          minimum: 0
+          nullable: true
+          description: Дополнительная стоянка по артефакту модели; null, если для даты нет расчёта.
+        overload_risk_pct:
+          type: number
+          nullable: true
+          description: Вероятность (%) превысить номинал вагона на максимальном участке
+        no_service:
+          type: boolean
+    ModelEvent:
+      type: object
+      required: [id, title, start, end, routes, category, effect, source_label, source_url]
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        start:
+          type: string
+          format: date
+        end:
+          type: string
+          format: date
+        routes:
+          type: array
+          description: Пустой массив означает все маршруты.
+          items:
+            type: integer
+        category:
+          type: string
+          enum: [calendar, network, traffic, assumption, event, repair, launch]
+        user:
+          type: boolean
+          description: true — событие добавлено диспетчером через POST /events
+        effect_pct:
+          type: number
+          description: Только для пользовательских событий
+        effect:
+          type: string
+        source_label:
+          type: string
+        source_url:
+          type: string
+          description: Пустая строка для событий, добавленных диспетчером
+    ReplayEvent:
+      type: object
+      required: [ts, route, hour, boardings_so_far]
+      properties:
+        ts:
+          type: string
+          format: date-time
+        route:
+          type: integer
+          format: int32
+        hour:
+          type: integer
+          minimum: 0
+          maximum: 23
+        boardings_so_far:
+          type: integer
+          format: int32
+          minimum: 0
+          description: Накопленные посадки за указанный час
+    NowcastResponse:
+      type: object
+      required: [route, date, now_hour, correction_factor, meta, points]
+      properties:
+        route:
+          type: integer
+          format: int32
+        date:
+          type: string
+          format: date
+        now_hour:
+          type: integer
+          minimum: 0
+          maximum: 23
+        correction_factor:
+          type: number
+          format: float
+          description: Применённый коэффициент k после clip
+        meta:
+          $ref: '#/components/schemas/NowcastMeta'
+        points:
+          type: array
+          description: Часы остатка дня, строго позже now_hour
+          items:
+            $ref: '#/components/schemas/NowcastPoint'
+    NowcastMeta:
+      type: object
+      required: [shrink, clip, start_hour]
+      properties:
+        shrink:
+          type: number
+          format: float
+        clip:
+          type: array
+          minItems: 2
+          maxItems: 2
+          items:
+            type: number
+            format: float
+        start_hour:
+          type: integer
+          minimum: 0
+          maximum: 23
+        gain_note:
+          type: string
+    NowcastPoint:
+      type: object
+      required: [hour, baseline, yhat_adj, q10, q90]
+      properties:
+        hour:
+          type: integer
+          minimum: 0
+          maximum: 23
+        baseline:
+          type: number
+          format: float
+          minimum: 0
+        yhat_adj:
+          type: number
+          format: float
+          minimum: 0
+        q10:
+          type: number
+          format: float
+          minimum: 0
+          nullable: true
+        q90:
+          type: number
+          format: float
+          minimum: 0
+          nullable: true
+    Factor:
+      type: object
+      required: [id, label, group, default, min, max, step, presets]
+      properties:
+        id:
+          type: string
+          pattern: '^[a-zA-Z0-9_-]+$'
+        label:
+          type: string
+        group:
+          type: string
+        default:
+          type: number
+          format: float
+        min:
+          type: number
+          format: float
+        max:
+          type: number
+          format: float
+        step:
+          type: number
+          format: float
+        presets:
+          type: object
+          additionalProperties:
+            type: number
+            format: float
+        source:
+          type: string
+          format: uri
+          nullable: true
+        effect_note:
+          type: string
+          nullable: true
+    ApiError:
+      type: object
+      required: [error, message]
+      properties:
+        error:
+          type: string
+          example: invalid_parameter
+        message:
+          type: string
+          example: Параметр to должен быть позже from
+    UserEventInput:
+      type: object
+      required: [title, start, end, effect_pct]
+      properties:
+        title: {type: string, maxLength: 120}
+        start: {type: string, format: date}
+        end: {type: string, format: date}
+        routes: {type: array, items: {type: integer}, description: Пусто — все маршруты}
+        category: {type: string, enum: [event, repair, launch], default: event}
+        effect_pct: {type: number, minimum: -90, maximum: 200, description: Изменение посадок в %}
+    ComponentLayer:
+      type: object
+      properties:
+        id: {type: string, enum: [calendar, network, season, calibration, ml]}
+        label: {type: string}
+        note: {type: string}
+        value: {type: number, description: Посадок; может быть отрицательным}
+        share_of_corrections_pct: {type: number, description: Доля слоя во всех поправках к профилю по горизонту}
+    Components:
+      type: object
+      properties:
+        route: {type: integer, nullable: true}
+        date: {type: string, format: date}
+        hour: {type: integer, nullable: true}
+        profile:
+          type: object
+          properties:
+            value: {type: number}
+            label: {type: string}
+            note: {type: string}
+        layers: {type: array, items: {$ref: '#/components/schemas/ComponentLayer'}}
+        final: {type: number}
+    PlanFactPoint:
+      type: object
+      properties:
+        ts: {type: string, format: date-time}
+        plan: {type: number, nullable: true}
+        fact: {type: integer, nullable: true}
+        q10: {type: number, nullable: true}
+        q90: {type: number, nullable: true}
+        trams: {type: integer, nullable: true}
+        no_service: {type: boolean}
+        outside: {type: string, enum: [above, below], nullable: true}
+    PlanFact:
+      type: object
+      properties:
+        route: {type: integer, nullable: true}
+        from: {type: string, format: date}
+        to: {type: string, format: date}
+        coverage_pct: {type: number, nullable: true, description: Доля часов с движением, где факт внутри q10–q90}
+        hours_with_service: {type: integer}
+        wape_score: {type: number, nullable: true, description: 1 − WAPE за период}
+        band_note: {type: string}
+        points: {type: array, items: {$ref: '#/components/schemas/PlanFactPoint'}}
+    Anomaly:
+      type: object
+      properties:
+        route: {type: integer, nullable: true, description: null — вся сеть}
+        date_from: {type: string, format: date}
+        date_to: {type: string, format: date}
+        kind: {type: string, enum: [ремонт, праздник, изменение трассы, сбой данных]}
+        effect_pct: {type: number, nullable: true}
+        source_url: {type: string, nullable: true}
+        note: {type: string, nullable: true}
+    Anomalies:
+      type: object
+      properties:
+        available: {type: boolean}
+        items: {type: array, items: {$ref: '#/components/schemas/Anomaly'}}
+    RouteRisk:
+      type: object
+      properties:
+        route: {type: integer}
+        yhat: {type: number}
+        trams_now: {type: integer}
+        trams_needed: {type: integer}
+        load_pct: {type: number, nullable: true}
+        overload_risk_pct: {type: number, nullable: true}
+        no_service: {type: boolean}
+    RiskSnapshot:
+      type: object
+      properties:
+        date: {type: string, format: date}
+        hour: {type: integer}
+        capacity_nominal: {type: integer, example: 188}
+        capacity_model: {type: string, nullable: true}
+        available: {type: boolean}
+        routes: {type: array, items: {$ref: '#/components/schemas/RouteRisk'}}

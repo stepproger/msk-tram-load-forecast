@@ -1,0 +1,109 @@
+[
+  {
+    "id": "calendar-workday-2025-11-01",
+    "title": "Рабочая суббота",
+    "start": "2025-11-01",
+    "end": "2025-11-01",
+    "routes": [],
+    "category": "calendar",
+    "effect": "В модели используется профиль рабочего дня.",
+    "source_label": "Производственный календарь РФ",
+    "source_url": "https://isdayoff.ru/api/getdata?year=2025&pre=1"
+  },
+  {
+    "id": "calendar-holidays-2025-11",
+    "title": "Праздничные дни",
+    "start": "2025-11-03",
+    "end": "2025-11-04",
+    "routes": [],
+    "category": "calendar",
+    "effect": "В модели используется профиль выходного дня.",
+    "source_label": "Производственный календарь РФ",
+    "source_url": "https://isdayoff.ru/api/getdata?year=2025&pre=1"
+  },
+  {
+    "id": "repair-7-50",
+    "title": "Ограничение движения из-за ремонта путей",
+    "start": "2025-11-01",
+    "end": "2025-11-14",
+    "routes": [
+      7,
+      50
+    ],
+    "category": "network",
+    "effect": "Для маршрутов 7 и 50 по выходным 01–09.11 сохранён режим ремонта.",
+    "source_label": "Новостная публикация о ремонте",
+    "source_url": "https://newsvostok.ru/dlya-tramvaev-7-i-50-izmeneniya-po-vyhodnym-budut-dejstvovat-do-kontsa-oseni/"
+  },
+  {
+    "id": "repair-end-7-50",
+    "title": "Восстановление движения после ремонта",
+    "start": "2025-11-15",
+    "end": "2025-11-15",
+    "routes": [
+      7,
+      50
+    ],
+    "category": "network",
+    "effect": "С 15.11 выходные 7 и 50 восстановлены: доля выходных до ремонта × текущие будни.",
+    "source_label": "Дептранс «Оперативно», сообщение в день события (15.11, 12:14)",
+    "source_url": "https://t.me/DtOperativno/23565"
+  },
+  {
+    "id": "traffic-2025-12-11",
+    "title": "Экстремальные дорожные заторы",
+    "start": "2025-12-11",
+    "end": "2025-12-11",
+    "routes": [],
+    "category": "traffic",
+    "effect": "Сценарная почасовая поправка на вечерние часы.",
+    "source_label": "РБК",
+    "source_url": "https://www.rbc.ru/society/11/12/2025/693ae9839a79476666be9d4c"
+  },
+  {
+    "id": "route5-start",
+    "title": "Запуск маршрута 5",
+    "start": "2025-12-16",
+    "end": "2025-12-16",
+    "routes": [
+      5
+    ],
+    "category": "network",
+    "effect": "Маршрут включён в прогноз с даты запуска.",
+    "source_label": "Официальный портал Москвы",
+    "source_url": "https://www.mos.ru/mayor/themes/13888050/"
+  },
+  {
+    "id": "traffic-2025-12-24",
+    "title": "Экстремальные дорожные заторы",
+    "start": "2025-12-24",
+    "end": "2025-12-24",
+    "routes": [],
+    "category": "traffic",
+    "effect": "Сценарная почасовая поправка на вечерние часы.",
+    "source_label": "РИА Новости",
+    "source_url": "https://ria.ru/20251224/probki-2064428625.html"
+  },
+  {
+    "id": "calendar-2025-12-31",
+    "title": "Нерабочий день",
+    "start": "2025-12-31",
+    "end": "2025-12-31",
+    "routes": [],
+    "category": "calendar",
+    "effect": "В модели используется профиль выходного дня.",
+    "source_label": "Производственный календарь РФ",
+    "source_url": "https://isdayoff.ru/api/getdata?year=2025&pre=1"
+  },
+  {
+    "id": "free-ride-2025-12-31",
+    "title": "Бесплатный проезд в новогоднюю ночь",
+    "start": "2025-12-31",
+    "end": "2025-12-31",
+    "routes": [],
+    "category": "calendar",
+    "effect": "С 20:00 валидаций нет — прогноз посадок 0.",
+    "source_label": "Дептранс «Оперативно», 26.12",
+    "source_url": "https://t.me/DtOperativno/24391"
+  }
+]

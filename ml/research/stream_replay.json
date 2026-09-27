@@ -1,0 +1,121 @@
+{
+  "period": [
+    "2025-09-01",
+    "2025-10-31"
+  ],
+  "recipe": "0.5·Профиль + 0.25·LightGBM×масштаб профиля (маршрут, месяц, выходной) + 0.25·LightGBM",
+  "protocol": "день за днём: к вечеру D−1 поступили данные по D−1; профиль переобучается ежедневно, LightGBM — полностью раз в 7 сут (экономия времени; между переобучениями обученная модель получает новые признаки календаря/погоды); прогноз на D (day-ahead) и D..D+6 (week-ahead, цели обрезаны концом периода). Погода — реанализ ERA5 вместо прогноза погоды.",
+  "routes": [
+    1,
+    7,
+    11,
+    12,
+    17,
+    25,
+    26,
+    28,
+    50
+  ],
+  "metric": "WAPE-score = 1 − Σ|y−ŷ|/Σy по всем ячейкам маршрут×дата×час",
+  "overall": {
+    "day_ahead": 0.9053847767020338,
+    "week_ahead": 0.9059789194187037,
+    "baseline_day_ahead": 0.8906835174241899,
+    "baseline_week_ahead": 0.8927706920358799,
+    "bias_day_ahead": -0.01458379800219689,
+    "n_forecasts": 61,
+    "n_cells_day_ahead": 13176,
+    "n_cells_week_ahead": 87696
+  },
+  "week_ahead_by_horizon_day": {
+    "1": 0.906241625119246,
+    "2": 0.9055280475689659,
+    "3": 0.9051924351244053,
+    "4": 0.9056412056063909,
+    "5": 0.9063199886871043,
+    "6": 0.9067202178329762,
+    "7": 0.9062776237524887
+  },
+  "weekly": [
+    {
+      "week_start": "2025-09-01",
+      "days": 7,
+      "day_ahead": 0.8625204751483816,
+      "baseline_day_ahead": 0.8458355286498503,
+      "week_ahead": 0.8510012593644828,
+      "baseline_week_ahead": 0.8382689899542068
+    },
+    {
+      "week_start": "2025-09-08",
+      "days": 7,
+      "day_ahead": 0.8981868813671436,
+      "baseline_day_ahead": 0.9051033062620263,
+      "week_ahead": 0.8920074460225305,
+      "baseline_week_ahead": 0.9051033062620263
+    },
+    {
+      "week_start": "2025-09-15",
+      "days": 7,
+      "day_ahead": 0.9090572489543186,
+      "baseline_day_ahead": 0.8974876053745318,
+      "week_ahead": 0.9073523437147138,
+      "baseline_week_ahead": 0.8974876053745318
+    },
+    {
+      "week_start": "2025-09-22",
+      "days": 7,
+      "day_ahead": 0.8971194393220456,
+      "baseline_day_ahead": 0.8879271503949858,
+      "week_ahead": 0.8964791942676889,
+      "baseline_week_ahead": 0.8879271503949858
+    },
+    {
+      "week_start": "2025-09-29",
+      "days": 7,
+      "day_ahead": 0.9091129891309787,
+      "baseline_day_ahead": 0.8804319883569889,
+      "week_ahead": 0.909619951377985,
+      "baseline_week_ahead": 0.8804319883569889
+    },
+    {
+      "week_start": "2025-10-06",
+      "days": 7,
+      "day_ahead": 0.9157054724407018,
+      "baseline_day_ahead": 0.90087822505806,
+      "week_ahead": 0.9133446367737339,
+      "baseline_week_ahead": 0.90087822505806
+    },
+    {
+      "week_start": "2025-10-13",
+      "days": 7,
+      "day_ahead": 0.9167750750365585,
+      "baseline_day_ahead": 0.9009268824222743,
+      "week_ahead": 0.9158225498837974,
+      "baseline_week_ahead": 0.9009268824222743
+    },
+    {
+      "week_start": "2025-10-20",
+      "days": 7,
+      "day_ahead": 0.9225094991833873,
+      "baseline_day_ahead": 0.9018603585878048,
+      "week_ahead": 0.9236894117174457,
+      "baseline_week_ahead": 0.9018603585878048
+    },
+    {
+      "week_start": "2025-10-27",
+      "days": 5,
+      "day_ahead": 0.9176729505047011,
+      "baseline_day_ahead": 0.8954064288947801,
+      "week_ahead": 0.9183227433043231,
+      "baseline_week_ahead": 0.8954064288947801
+    }
+  ],
+  "timing": {
+    "profile_fit_ms_median": 2.55220802500844,
+    "gbm_fit_s_median": 8.766561208001804,
+    "gbm_fits": 9,
+    "inference_one_day_ms_median": 5.285791005007923,
+    "train_rows_last_gbm": 65448,
+    "hardware": "Apple M4 Pro, LightGBM n_jobs по умолчанию (все ядра)"
+  }
+}

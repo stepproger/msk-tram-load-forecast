@@ -1,0 +1,82 @@
+{
+  "horizon_curve": [
+    {
+      "wk": 1,
+      "median": 0.8911,
+      "p10": 0.828,
+      "bias": -0.0068
+    },
+    {
+      "wk": 2,
+      "median": 0.8641,
+      "p10": 0.8207,
+      "bias": -0.0186
+    },
+    {
+      "wk": 3,
+      "median": 0.8479,
+      "p10": 0.7837,
+      "bias": -0.0124
+    },
+    {
+      "wk": 4,
+      "median": 0.8423,
+      "p10": 0.7652,
+      "bias": -0.0069
+    },
+    {
+      "wk": 5,
+      "median": 0.8394,
+      "p10": 0.7415,
+      "bias": 0.0157
+    },
+    {
+      "wk": 6,
+      "median": 0.8244,
+      "p10": 0.7303,
+      "bias": 0.0229
+    },
+    {
+      "wk": 7,
+      "median": 0.834,
+      "p10": 0.7088,
+      "bias": 0.0223
+    },
+    {
+      "wk": 8,
+      "median": 0.803,
+      "p10": 0.7005,
+      "bias": 0.0075
+    }
+  ],
+  "weather_week_ahead": {
+    "weeks": 33,
+    "score_base": 0.8762,
+    "score_weather": 0.8765,
+    "delta": 0.0003,
+    "wet_weeks_base": 0.8616,
+    "wet_weeks_weather": 0.8619,
+    "share_weeks_improved": 0.636
+  },
+  "cold_start": {
+    "7": 0.8725,
+    "14": 0.8673,
+    "полная (4 нед.)": 0.9004
+  },
+  "weather_rain_hours": {
+    "0.5–2 мм/ч": {
+      "hours": 153,
+      "base": 0.8699,
+      "weather": 0.8738,
+      "bias_base": 0.048,
+      "bias_weather": -0.002
+    },
+    ">2 мм/ч": {
+      "hours": 27,
+      "base": 0.8317,
+      "weather": 0.8441,
+      "bias_base": 0.109,
+      "bias_weather": -0.015
+    }
+  }
+}

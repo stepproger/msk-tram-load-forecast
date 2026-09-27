@@ -1,0 +1,8 @@
+# Скрипты и конфиги — всегда LF, чтобы клон на Windows запускался в Linux-контейнерах и bash
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.pdf binary
+*.parquet binary
+*.xlsx binary
+*.zip binary

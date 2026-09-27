@@ -1,0 +1,22 @@
+
+
+# Data (не в git)
+dataset/
+data/*
+!data/external/
+.DS_Store
+__pycache__/
+.venv/
+.venv-chronos/
+.venv-neural-review/
+.uv-cache/
+.hf-cache/
+.chronos-checkpoints/
+
+# Local web builds and credentials
+.env
+frontend/node_modules/
+frontend/dist/
+backend/.gradle/
+backend/build/
+frontend/tsconfig.tsbuildinfo

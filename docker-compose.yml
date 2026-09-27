@@ -1,0 +1,38 @@
+# Shared secret for backend -> forecast-data calls; override with INTERNAL_TOKEN in production.
+x-internal-token: &internal_token ${INTERNAL_TOKEN:-3815305eca31019370de4b5a0bd72aa4202a0e622b17a209}
+
+services:
+  forecast-data:
+    build: ./backend/data-service
+    environment:
+      FORECAST_DIR: /data/forecast
+      INTERNAL_TOKEN: *internal_token
+    volumes:
+      - ./artifacts/forecast:/data/forecast:ro
+      - ./artifacts/geo:/data/geo:ro
+    expose: ["8001"]
+    restart: unless-stopped
+
+  backend:
+    build: ./backend
+    environment:
+      FORECAST_DATA_URL: http://forecast-data:8001
+      INTERNAL_TOKEN: *internal_token
+      APP_USER: ${APP_USER:-dispatcher}
+      APP_PASSWORD: ${APP_PASSWORD:-tram2025}
+    depends_on:
+      - forecast-data
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE_URL: /api/v1
+    depends_on:
+      - backend
+    ports:
+      - "3000:80"
+    restart: unless-stopped

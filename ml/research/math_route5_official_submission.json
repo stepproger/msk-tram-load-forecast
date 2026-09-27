@@ -1,0 +1,13 @@
+{
+  "submission": "ml\\submissions\\S26_MATH_ROUTE5_OFFICIAL.csv",
+  "starting_point": "S13 (LB 0.89316)",
+  "official_first_week_trips_approx": 40000,
+  "official_source": "https://transport.mos.ru/mostrans/all_news/127782",
+  "s13_first_week_prediction": 42514,
+  "candidate_first_week_prediction": 39866,
+  "route5_factor_relative_to_original": 1.5,
+  "nov1_raw_target_lower_bound": true,
+  "changed_cells": 323,
+  "total_count_change": -5789,
+  "leaderboard_score": 0.89325
+}

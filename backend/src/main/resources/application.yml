@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: tram-forecast-backend
+server:
+  port: 8080
+forecast-data:
+  base-url: ${FORECAST_DATA_URL:http://localhost:8001}
+  internal-token: ${INTERNAL_TOKEN}
+app:
+  user: ${APP_USER}
+  password: ${APP_PASSWORD}

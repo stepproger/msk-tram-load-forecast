@@ -1,0 +1,5 @@
+neuralforecast==3.2.2
+torch==2.14.0
+duckdb>=1.1
+pandas>=2.2
+pyarrow>=17
