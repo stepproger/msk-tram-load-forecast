@@ -25,8 +25,8 @@
 
 ### 1. Веб-сервис (Docker Compose)
 ```powershell
-git clone <ссылка на этот репозиторий>
-cd <папка репозитория>
+git clone https://github.com/stepproger/msk-tram-load-forecast.git
+cd msk-tram-load-forecast
 docker compose up --build
 ```
 - UI: http://localhost:3000
